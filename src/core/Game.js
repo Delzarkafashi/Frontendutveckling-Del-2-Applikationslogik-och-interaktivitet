@@ -6,7 +6,7 @@ export class Game {
     this.ctx = ctx;
 
     this.tileSize = 20;
-    this.cols = 40;
+    this.cols = 50;
     this.rows = 20;
 
     this.board = new Board(this.cols, this.rows, this.tileSize, this.ctx);
