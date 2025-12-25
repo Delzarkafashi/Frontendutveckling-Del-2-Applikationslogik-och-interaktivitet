@@ -53,4 +53,14 @@ export class Snake {
       );
     });
   }
+    grow() {
+    const tail = this.segments[this.segments.length - 1];
+    this.segments.push({ x: tail.x, y: tail.y });
+  }
+
+  hasSelfCollision() {
+    const [head, ...body] = this.segments;
+    return body.some(seg => seg.x === head.x && seg.y === head.y);
+  }
+
 }
