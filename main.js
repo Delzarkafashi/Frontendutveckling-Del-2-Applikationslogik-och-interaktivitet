@@ -1,21 +1,11 @@
-const canvas = document.querySelector("#game");
+import { Game } from "./src/core/Game.js";
+
+const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
-function update() {
-  // inget state än
-}
+canvas.width = 50 * 20;
+canvas.height = 20 * 20;
 
-function render() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+const game = new Game(ctx);
+game.start();
 
-  // rita en ruta så vi ser att render körs
-  ctx.fillRect(20, 20, 40, 40);
-}
-
-function loop() {
-  update();
-  render();
-}
-
-setInterval(loop, 200);
-console.log("Game loop started");
