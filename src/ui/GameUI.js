@@ -4,8 +4,7 @@ import { StartScreen } from "./screens/StartScreen.js";
 export class GameUI {
   constructor(game) {
     this.game = game;
-
-    // callback som main.js sätter
+    
     this.onSubmitScore = null;
 
     this.startUI = new StartScreen({
