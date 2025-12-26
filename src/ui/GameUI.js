@@ -5,6 +5,9 @@ export class GameUI {
   constructor(game) {
     this.game = game;
 
+    // callback som main.js sätter
+    this.onSubmitScore = null;
+
     this.startUI = new StartScreen({
       onStart: () => {
         this.game.start();
@@ -12,7 +15,11 @@ export class GameUI {
     });
 
     this.gameOverUI = new GameOverScreen({
-      onRestart: () => {
+      onRestart: (name) => {
+        if (typeof this.onSubmitScore === "function") {
+          this.onSubmitScore(name);
+        }
+
         this.gameOverUI.hide();
         this.game.reset();
         this.game.start();

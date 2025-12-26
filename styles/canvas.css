@@ -1,4 +1,7 @@
-canvas{
-  background: var(--card);
-  border: 2px solid var(--border);
+canvas {
+  border-radius: 12px;
+  background: #0c0c0c;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.08),
+    0 20px 60px rgba(0,0,0,0.8);
 }

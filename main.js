@@ -10,7 +10,17 @@ canvas.width = 50 * 20;
 canvas.height = 20 * 20;
 
 const game = new Game(ctx);
-new GameUI(game);
+const gameUI = new GameUI(game);
+
+gameUI.onSubmitScore = (name) => {
+  const updated = saveScore({
+    name,
+    score: game.score,
+  });
+
+  renderScoreboard(updated);
+};
+
 
 renderScoreboard(loadScores());
 
