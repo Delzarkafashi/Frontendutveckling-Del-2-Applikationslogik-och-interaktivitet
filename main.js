@@ -10,7 +10,17 @@ canvas.width = 50 * 20;
 canvas.height = 20 * 20;
 
 const game = new Game(ctx);
-new GameUI(game);
+const gameUI = new GameUI(game);
+
+gameUI.onSubmitScore = (name) => {
+  const updated = saveScore({
+    name,
+    score: game.score,
+  });
+
+  renderScoreboard(updated);
+};
+
 
 renderScoreboard(loadScores());
 
@@ -18,7 +28,7 @@ const uiOnGameOver = game.onGameOver;
 
 game.onGameOver = ({ score } = {}) => {
   if (typeof uiOnGameOver === "function") {
-    uiOnGameOver();
+    uiOnGameOver({ score });
   }
 
   const updated = saveScore({
@@ -34,6 +44,3 @@ const scoreEl = document.getElementById("score-text");
 game.onScoreChange = (score) => {
   if (scoreEl) scoreEl.textContent = `Score: ${score}`;
 };
-
-
-game.start();

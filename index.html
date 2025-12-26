@@ -6,25 +6,36 @@
     <title>Snake</title>
     <link rel="stylesheet" href="./styles/styles.css" />
   </head>
-    <body>
-        <div class="game-wrapper">
-            <h1>Snake</h1>
-            <section class="scoreboard">
-              <h2>Top 5</h2>
-              <ol id="scoreboard-list"></ol>
-            </section>
-            <p id="score-text">Score: 0</p>
-            <canvas id="game" width="600" height="600"></canvas>
-        </div>
-        <div id="gameover-screen" class="overlay" style="display:none;">
-          <div class="modal">
-            <h2>Game Over</h2>
-            <p id="gameover-result">Du dog!</p>
-            <button id="restart-btn" type="button">Spela igen</button>
-          </div>
-        </div>
 
-        <script type="module" src="./main.js"></script>
-    </body>
+  <body>
+    <div class="game-wrapper">
+      <h1>Snake</h1>
 
+      <section class="scoreboard">
+        <h2>Top 5</h2>
+        <ol id="scoreboard-list"></ol>
+      </section>
+
+      <p id="score-text">Score: 0</p>
+
+      <canvas id="game" width="600" height="600"></canvas>
+    </div>
+
+    <div id="start-screen" class="overlay">
+      <div class="modal">
+        <button id="start-btn" type="button">Spela singleplayer</button>
+      </div>
+    </div>
+
+    <div id="gameover-screen" class="overlay" style="display:none;">
+      <div class="modal">
+        <h2>Game Over</h2>
+        <p id="gameover-result">Du dog!</p>
+        <input id="player-name" type="text" placeholder="Ditt namn" />
+        <button id="restart-btn" type="button">Spela igen</button>
+      </div>
+    </div>
+
+    <script type="module" src="./main.js"></script>
+  </body>
 </html>

@@ -14,8 +14,16 @@ html, body{
   margin: 0;
 }
 
-body{
-  background: var(--bg);
-  color: var(--text);
-  font-family: system-ui, sans-serif;
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  background: radial-gradient(circle at top, #111 0%, #000 70%);
+  color: #eaeaea;
+}
+
+h1 {
+  margin: 20px 0 10px;
+  font-size: 3rem;
+  text-align: center;
+  letter-spacing: 2px;
 }
