@@ -18,7 +18,7 @@ const uiOnGameOver = game.onGameOver;
 
 game.onGameOver = ({ score } = {}) => {
   if (typeof uiOnGameOver === "function") {
-    uiOnGameOver();
+    uiOnGameOver({ score });
   }
 
   const updated = saveScore({
@@ -34,6 +34,3 @@ const scoreEl = document.getElementById("score-text");
 game.onScoreChange = (score) => {
   if (scoreEl) scoreEl.textContent = `Score: ${score}`;
 };
-
-
-game.start();
