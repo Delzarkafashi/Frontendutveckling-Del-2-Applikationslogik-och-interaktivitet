@@ -24,21 +24,6 @@ gameUI.onSubmitScore = (name) => {
 
 renderScoreboard(loadScores());
 
-const uiOnGameOver = game.onGameOver;
-
-game.onGameOver = ({ score } = {}) => {
-  if (typeof uiOnGameOver === "function") {
-    uiOnGameOver({ score });
-  }
-
-  const updated = saveScore({
-    name: "Player",
-    score: typeof score === "number" ? score : 0,
-  });
-
-  renderScoreboard(updated);
-};
-
 const scoreEl = document.getElementById("score-text");
 
 game.onScoreChange = (score) => {

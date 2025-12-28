@@ -21,12 +21,28 @@
       <canvas id="game" width="600" height="600"></canvas>
     </div>
 
+    <!-- START -->
     <div id="start-screen" class="overlay">
       <div class="modal">
         <button id="start-btn" type="button">Spela singleplayer</button>
       </div>
     </div>
 
+    <!-- PAUSE (NYTT) -->
+    <div id="pause-screen" class="overlay" style="display:none;">
+      <div class="modal">
+        <h2>Paus</h2>
+        <p>Tryck <strong>Escape</strong> eller <strong>P</strong> för att fortsätta.</p>
+
+        <div style="display:grid; gap:12px; margin-top:16px;">
+          <button id="resume-btn" type="button">Fortsätt</button>
+          <button id="pause-restart-btn" type="button">Starta om</button>
+          <button id="quit-btn" type="button">Till start</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- GAME OVER -->
     <div id="gameover-screen" class="overlay" style="display:none;">
       <div class="modal">
         <h2>Game Over</h2>
