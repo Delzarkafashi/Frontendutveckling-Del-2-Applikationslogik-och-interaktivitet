@@ -4,13 +4,12 @@ export class GameOverScreen {
     this.resultEl = document.getElementById("gameover-result");
     this.restartBtn = document.getElementById("restart-btn");
 
-    // NYTT
     this.nameInput = document.getElementById("player-name");
 
     this.onRestart = onRestart;
 
     this.restartBtn.addEventListener("click", () => {
-      const name = this.nameInput?.value || "Player";
+      const name = (this.nameInput?.value || "").trim() || "Player";
       this.hide();
       if (typeof this.onRestart === "function") {
         this.onRestart(name);

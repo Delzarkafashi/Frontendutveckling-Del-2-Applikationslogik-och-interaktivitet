@@ -14,46 +14,85 @@ export class Game {
 
     this.snake = new Snake("black");
     this.food = new Food(this.cols, this.rows, this.tileSize, this.ctx);
-    this.food.randomize(this.snake.segments);
 
     this.isGameOver = false;
+    this.isPaused = false;
 
     this.score = 0;
-
     this.onScoreChange = null;
+    this.onGameOver = null;
 
-    this.loopId = null;
+    this.tickMs = 200;
+
+    this._accumulator = 0;
+    this._lastTime = 0;
+    this._rafId = null;
+
     this._handleKeyDown = this._handleKeyDown.bind(this);
 
-    this.onGameOver = null;
+    this._spawnFoodSafely();
   }
 
   start() {
     this.stop();
+
     this.isGameOver = false;
+    this.isPaused = false;
 
     this.score = 0;
-
     if (typeof this.onScoreChange === "function") {
       this.onScoreChange(this.score);
     }
 
-    if (this.gameOverEl) {
-      this.gameOverEl.style.display = "none";
-    }
-
     window.addEventListener("keydown", this._handleKeyDown);
-    this.loopId = setInterval(() => this.update(), 200);
+
+    this._lastTime = performance.now();
+    this._accumulator = 0;
+    this._rafId = requestAnimationFrame((t) => this._loop(t));
   }
 
   stop() {
-    if (this.loopId) clearInterval(this.loopId);
-    this.loopId = null;
+    if (this._rafId) cancelAnimationFrame(this._rafId);
+    this._rafId = null;
+
     window.removeEventListener("keydown", this._handleKeyDown);
   }
 
-  update() {
+  togglePause() {
     if (this.isGameOver) return;
+
+    this.isPaused = !this.isPaused;
+
+    if (!this.isPaused) {
+      this._lastTime = performance.now();
+      this._accumulator = 0;
+    }
+  }
+
+  _loop(time) {
+    if (this.isGameOver) return;
+
+    const dt = time - this._lastTime;
+    this._lastTime = time;
+
+    if (!this.isPaused) {
+      this._accumulator += dt;
+
+      while (this._accumulator >= this.tickMs) {
+        this.update();
+        this._accumulator -= this.tickMs;
+
+        if (this.isGameOver) break;
+      }
+    }
+
+    this._render();
+
+    this._rafId = requestAnimationFrame((t) => this._loop(t));
+  }
+
+  update() {
+    if (this.isGameOver || this.isPaused) return;
 
     this.snake.update();
 
@@ -75,9 +114,14 @@ export class Game {
         this.onScoreChange(this.score);
       }
 
-      this.food.randomize(this.snake.segments);
+      const ok = this._spawnFoodSafely();
+      if (!ok) {
+        return this._setGameOver();
+      }
     }
+  }
 
+  _render() {
     this.board.clear();
     this.board.drawGrid();
     this.food.draw();
@@ -93,25 +137,60 @@ export class Game {
     }
   }
 
-  _handleKeyDown(event) {
+    _handleKeyDown(event) {
+    if (this.isPaused) return;
+
     switch (event.key) {
-      case "ArrowUp":
+        case "ArrowUp":
         this.snake.setDirection(0, -1);
         break;
-      case "ArrowDown":
+        case "ArrowDown":
         this.snake.setDirection(0, 1);
         break;
-      case "ArrowLeft":
+        case "ArrowLeft":
         this.snake.setDirection(-1, 0);
         break;
-      case "ArrowRight":
+        case "ArrowRight":
         this.snake.setDirection(1, 0);
         break;
     }
+   }
+
+
+  _spawnFoodSafely() {
+    const blocked = new Set(this.snake.segments.map((s) => `${s.x},${s.y}`));
+    const freeCount = this.cols * this.rows - blocked.size;
+
+    if (freeCount <= 0) return false;
+
+    for (let i = 0; i < 200; i++) {
+      this.food.randomize(this.snake.segments);
+      const key = `${this.food.x},${this.food.y}`;
+      if (!blocked.has(key)) return true;
+    }
+
+    for (let y = 0; y < this.rows; y++) {
+      for (let x = 0; x < this.cols; x++) {
+        const key = `${x},${y}`;
+        if (!blocked.has(key)) {
+          this.food.x = x;
+          this.food.y = y;
+          return true;
+        }
+      }
+    }
+
+    return false;
   }
 
   reset() {
     this.isGameOver = false;
+    this.isPaused = false;
+
+    this.score = 0;
+    if (typeof this.onScoreChange === "function") {
+      this.onScoreChange(this.score);
+    }
 
     this.snake.segments = [
       { x: 10, y: 10 },
@@ -121,6 +200,6 @@ export class Game {
     this.snake.direction = { x: 1, y: 0 };
     this.snake.nextDirection = { x: 1, y: 0 };
 
-    this.food.randomize(this.snake.segments);
+    this._spawnFoodSafely();
   }
 }
