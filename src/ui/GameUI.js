@@ -9,11 +9,13 @@ export class GameUI {
     this.onSubmitScore = null;
 
     this.startUI = new StartScreen({
-      onStart: () => {
-        this.game.reset();
-        this.game.start();
-      },
+        onStart: (players) => {
+            this.game.setPlayers(players);
+            this.game.reset();
+            this.game.start();
+        },
     });
+
 
     this.gameOverUI = new GameOverScreen({
       onRestart: (name) => {

@@ -12,13 +12,17 @@ export class Game {
 
     this.board = new Board(this.cols, this.rows, this.tileSize, this.ctx);
 
-    this.snake = new Snake("black");
     this.food = new Food(this.cols, this.rows, this.tileSize, this.ctx);
 
     this.isGameOver = false;
     this.isPaused = false;
 
+    this.playerCount = 1;    
+    this.snakes = [];       
+    this.scores = [];       
+
     this.score = 0;
+
     this.onScoreChange = null;
     this.onGameOver = null;
 
@@ -30,7 +34,56 @@ export class Game {
 
     this._handleKeyDown = this._handleKeyDown.bind(this);
 
+    this.setPlayers(1);
+  }
+
+  setPlayers(count = 1) {
+    this.playerCount = count;
+
+    if (count === 2) {
+      const p1 = new Snake("black");
+      p1.segments = [
+        { x: 10, y: 10 },
+        { x: 9, y: 10 },
+        { x: 8, y: 10 },
+      ];
+      p1.direction = { x: 1, y: 0 };
+      p1.nextDirection = { x: 1, y: 0 };
+
+      const p2 = new Snake("blue");
+      p2.segments = [
+        { x: this.cols - 11, y: this.rows - 11 },
+        { x: this.cols - 10, y: this.rows - 11 },
+        { x: this.cols - 9, y: this.rows - 11 },
+      ];
+      p2.direction = { x: -1, y: 0 };
+      p2.nextDirection = { x: -1, y: 0 };
+
+      this.snakes = [p1, p2];
+      this.scores = [0, 0];
+    } else {
+      const p1 = new Snake("black");
+      p1.segments = [
+        { x: 10, y: 10 },
+        { x: 9, y: 10 },
+        { x: 8, y: 10 },
+      ];
+      p1.direction = { x: 1, y: 0 };
+      p1.nextDirection = { x: 1, y: 0 };
+
+      this.snakes = [p1];
+      this.scores = [0];
+    }
+
+    this.snake = this.snakes[0];
+
+    this.score = this.scores[0];
+
+    this.isGameOver = false;
+    this.isPaused = false;
+
     this._spawnFoodSafely();
+    this._emitScore();
   }
 
   start() {
@@ -39,10 +92,9 @@ export class Game {
     this.isGameOver = false;
     this.isPaused = false;
 
+    this.scores = this.scores.map(() => 0);
     this.score = 0;
-    if (typeof this.onScoreChange === "function") {
-      this.onScoreChange(this.score);
-    }
+    this._emitScore();
 
     window.addEventListener("keydown", this._handleKeyDown);
 
@@ -94,29 +146,49 @@ export class Game {
   update() {
     if (this.isGameOver || this.isPaused) return;
 
-    this.snake.update();
+    for (const s of this.snakes) s.update();
 
-    const head = this.snake.segments[0];
+    for (const s of this.snakes) {
+      const head = s.segments[0];
 
-    if (head.x < 0 || head.x >= this.cols || head.y < 0 || head.y >= this.rows) {
-      return this._setGameOver();
-    }
-
-    if (this.snake.hasSelfCollision()) {
-      return this._setGameOver();
-    }
-
-    if (head.x === this.food.x && head.y === this.food.y) {
-      this.snake.grow();
-      this.score += 1;
-
-      if (typeof this.onScoreChange === "function") {
-        this.onScoreChange(this.score);
+      if (head.x < 0 || head.x >= this.cols || head.y < 0 || head.y >= this.rows) {
+        return this._setGameOver();
       }
 
-      const ok = this._spawnFoodSafely();
-      if (!ok) {
+      if (s.hasSelfCollision()) {
         return this._setGameOver();
+      }
+    }
+
+    if (this.playerCount === 2) {
+      const h0 = this.snakes[0].segments[0];
+      const h1 = this.snakes[1].segments[0];
+
+      // huvud mot huvud
+      if (h0.x === h1.x && h0.y === h1.y) return this._setGameOver();
+
+      for (const seg of this.snakes[1].segments) {
+        if (seg.x === h0.x && seg.y === h0.y) return this._setGameOver();
+      }
+
+      for (const seg of this.snakes[0].segments) {
+        if (seg.x === h1.x && seg.y === h1.y) return this._setGameOver();
+      }
+    }
+
+    for (let i = 0; i < this.snakes.length; i++) {
+      const head = this.snakes[i].segments[0];
+
+      if (head.x === this.food.x && head.y === this.food.y) {
+        this.snakes[i].grow();
+        this.scores[i] += 1;
+
+        this.score = this.scores[0];
+        this._emitScore();
+
+        const ok = this._spawnFoodSafely();
+        if (!ok) return this._setGameOver();
+        break;
       }
     }
   }
@@ -125,7 +197,10 @@ export class Game {
     this.board.clear();
     this.board.drawGrid();
     this.food.draw();
-    this.snake.draw(this.ctx, this.tileSize);
+
+    for (const s of this.snakes) {
+      s.draw(this.ctx, this.tileSize);
+    }
   }
 
   _setGameOver() {
@@ -137,34 +212,50 @@ export class Game {
     }
   }
 
-    _handleKeyDown(event) {
+  _handleKeyDown(event) {
     if (this.isPaused) return;
 
     switch (event.key) {
-        case "ArrowUp":
-        this.snake.setDirection(0, -1);
+      case "ArrowUp":
+        this.snakes[0].setDirection(0, -1);
         break;
-        case "ArrowDown":
-        this.snake.setDirection(0, 1);
+      case "ArrowDown":
+        this.snakes[0].setDirection(0, 1);
         break;
-        case "ArrowLeft":
-        this.snake.setDirection(-1, 0);
+      case "ArrowLeft":
+        this.snakes[0].setDirection(-1, 0);
         break;
-        case "ArrowRight":
-        this.snake.setDirection(1, 0);
+      case "ArrowRight":
+        this.snakes[0].setDirection(1, 0);
         break;
     }
-   }
 
+    if (this.playerCount === 2) {
+      if (event.key === "w" || event.key === "W") this.snakes[1].setDirection(0, -1);
+      if (event.key === "s" || event.key === "S") this.snakes[1].setDirection(0, 1);
+      if (event.key === "a" || event.key === "A") this.snakes[1].setDirection(-1, 0);
+      if (event.key === "d" || event.key === "D") this.snakes[1].setDirection(1, 0);
+    }
+  }
+
+  _emitScore() {
+    if (typeof this.onScoreChange === "function") {
+      this.onScoreChange(this.score);
+    }
+  }
+
+  _allSegments() {
+    return this.snakes.flatMap((s) => s.segments);
+  }
 
   _spawnFoodSafely() {
-    const blocked = new Set(this.snake.segments.map((s) => `${s.x},${s.y}`));
+    const blocked = new Set(this._allSegments().map((s) => `${s.x},${s.y}`));
     const freeCount = this.cols * this.rows - blocked.size;
 
     if (freeCount <= 0) return false;
 
     for (let i = 0; i < 200; i++) {
-      this.food.randomize(this.snake.segments);
+      this.food.randomize(this._allSegments());
       const key = `${this.food.x},${this.food.y}`;
       if (!blocked.has(key)) return true;
     }
@@ -184,22 +275,6 @@ export class Game {
   }
 
   reset() {
-    this.isGameOver = false;
-    this.isPaused = false;
-
-    this.score = 0;
-    if (typeof this.onScoreChange === "function") {
-      this.onScoreChange(this.score);
-    }
-
-    this.snake.segments = [
-      { x: 10, y: 10 },
-      { x: 9, y: 10 },
-      { x: 8, y: 10 },
-    ];
-    this.snake.direction = { x: 1, y: 0 };
-    this.snake.nextDirection = { x: 1, y: 0 };
-
-    this._spawnFoodSafely();
+    this.setPlayers(this.playerCount);
   }
 }
