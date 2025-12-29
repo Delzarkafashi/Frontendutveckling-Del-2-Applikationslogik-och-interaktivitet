@@ -9,13 +9,12 @@ export class GameUI {
     this.onSubmitScore = null;
 
     this.startUI = new StartScreen({
-        onStart: (players) => {
-            this.game.setPlayers(players);
-            this.game.reset();
-            this.game.start();
-        },
+      onStart: (players) => {
+        this.game.setPlayers(players);
+        this.game.reset();
+        this.game.start();
+      },
     });
-
 
     this.gameOverUI = new GameOverScreen({
       onRestart: (name) => {
@@ -32,11 +31,10 @@ export class GameUI {
     this.pauseUI = new PauseScreen({
       onResume: () => {
         this.pauseUI.hide();
-        this.game.togglePause(); 
+        this.game.togglePause();
       },
       onRestart: () => {
         this.pauseUI.hide();
-
 
         if (this.game.isPaused) this.game.togglePause();
 
@@ -56,12 +54,22 @@ export class GameUI {
       },
     });
 
-    this.game.onGameOver = ({ score }) => {
+    this.game.onGameOver = ({ score, result } = {}) => {
       this.pauseUI.hide();
 
       if (this.game.isPaused) this.game.togglePause();
 
-      this.gameOverUI.show(`Du dog! Score: ${score}`);
+      let message = `Du dog! Score: ${typeof score === "number" ? score : 0}`;
+
+      if (result && this.game.playerCount === 2) {
+        if (result.draw) {
+          message = `Oavgjort! (P1: ${result.scores?.[0] ?? 0} | P2: ${result.scores?.[1] ?? 0})`;
+        } else {
+          message = `Vinnare: Spelare ${result.winner} (P1: ${result.scores?.[0] ?? 0} | P2: ${result.scores?.[1] ?? 0})`;
+        }
+      }
+
+      this.gameOverUI.show(message);
     };
 
     window.addEventListener("keydown", (e) => {

@@ -17,9 +17,9 @@ export class Game {
     this.isGameOver = false;
     this.isPaused = false;
 
-    this.playerCount = 1;    
-    this.snakes = [];       
-    this.scores = [];       
+    this.playerCount = 1; 
+    this.snakes = []; 
+    this.scores = []; 
 
     this.score = 0;
 
@@ -34,9 +34,11 @@ export class Game {
 
     this._handleKeyDown = this._handleKeyDown.bind(this);
 
+    this.lastResult = null; 
+    this.loserIndex = null; 
+
     this.setPlayers(1);
   }
-
   setPlayers(count = 1) {
     this.playerCount = count;
 
@@ -82,6 +84,9 @@ export class Game {
     this.isGameOver = false;
     this.isPaused = false;
 
+    this.lastResult = null;
+    this.loserIndex = null;
+
     this._spawnFoodSafely();
     this._emitScore();
   }
@@ -94,6 +99,10 @@ export class Game {
 
     this.scores = this.scores.map(() => 0);
     this.score = 0;
+
+    this.lastResult = null;
+    this.loserIndex = null;
+
     this._emitScore();
 
     window.addEventListener("keydown", this._handleKeyDown);
@@ -152,11 +161,13 @@ export class Game {
       const head = s.segments[0];
 
       if (head.x < 0 || head.x >= this.cols || head.y < 0 || head.y >= this.rows) {
-        return this._setGameOver();
+        const loserIndex = this.snakes.indexOf(s);
+        return this._setGameOver(loserIndex);
       }
 
       if (s.hasSelfCollision()) {
-        return this._setGameOver();
+        const loserIndex = this.snakes.indexOf(s);
+        return this._setGameOver(loserIndex);
       }
     }
 
@@ -164,15 +175,20 @@ export class Game {
       const h0 = this.snakes[0].segments[0];
       const h1 = this.snakes[1].segments[0];
 
-      // huvud mot huvud
-      if (h0.x === h1.x && h0.y === h1.y) return this._setGameOver();
+      if (h0.x === h1.x && h0.y === h1.y) {
+        return this._setGameOver(null);
+      }
 
       for (const seg of this.snakes[1].segments) {
-        if (seg.x === h0.x && seg.y === h0.y) return this._setGameOver();
+        if (seg.x === h0.x && seg.y === h0.y) {
+          return this._setGameOver(0);
+        }
       }
 
       for (const seg of this.snakes[0].segments) {
-        if (seg.x === h1.x && seg.y === h1.y) return this._setGameOver();
+        if (seg.x === h1.x && seg.y === h1.y) {
+          return this._setGameOver(1);
+        }
       }
     }
 
@@ -187,7 +203,7 @@ export class Game {
         this._emitScore();
 
         const ok = this._spawnFoodSafely();
-        if (!ok) return this._setGameOver();
+        if (!ok) return this._setGameOver(null);
         break;
       }
     }
@@ -203,12 +219,40 @@ export class Game {
     }
   }
 
-  _setGameOver() {
+  _setGameOver(loserIndex = null) {
     this.isGameOver = true;
     this.stop();
 
+    this.loserIndex = loserIndex;
+
+    if (this.playerCount === 1) {
+      this.lastResult = {
+        winner: 1,
+        loser: null,
+        draw: false,
+        scores: [...this.scores],
+      };
+    } else {
+      if (loserIndex === null) {
+        this.lastResult = {
+          winner: 0,
+          loser: null,
+          draw: true,
+          scores: [...this.scores],
+        };
+      } else {
+        const winner = loserIndex === 0 ? 2 : 1;
+        this.lastResult = {
+          winner,
+          loser: loserIndex + 1, 
+          draw: false,
+          scores: [...this.scores],
+        };
+      }
+    }
+
     if (typeof this.onGameOver === "function") {
-      this.onGameOver({ score: this.score });
+      this.onGameOver({ score: this.score, result: this.lastResult });
     }
   }
 
@@ -272,6 +316,52 @@ export class Game {
     }
 
     return false;
+  }
+
+  _getSpawnForPlayer(index) {
+    if (index === 0) {
+      return {
+        segments: [
+          { x: 10, y: 10 },
+          { x: 9, y: 10 },
+          { x: 8, y: 10 },
+        ],
+        dir: { x: 1, y: 0 },
+      };
+    }
+
+    return {
+      segments: [
+        { x: this.cols - 11, y: this.rows - 11 },
+        { x: this.cols - 10, y: this.rows - 11 },
+        { x: this.cols - 9, y: this.rows - 11 },
+      ],
+      dir: { x: -1, y: 0 },
+    };
+  }
+
+  resetPlayer(index) {
+    if (this.playerCount !== 2) return;
+
+    const snake = this.snakes[index];
+    if (!snake) return;
+
+    const spawn = this._getSpawnForPlayer(index);
+
+    snake.segments = spawn.segments.map((s) => ({ ...s }));
+    snake.direction = { ...spawn.dir };
+    snake.nextDirection = { ...spawn.dir };
+
+    this.scores[index] = 0;
+
+    this._spawnFoodSafely();
+
+    this.score = this.scores[0];
+    this._emitScore();
+  }
+
+  resetMatch() {
+    this.setPlayers(this.playerCount);
   }
 
   reset() {
