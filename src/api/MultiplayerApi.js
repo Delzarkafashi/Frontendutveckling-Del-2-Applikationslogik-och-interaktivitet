@@ -1,27 +1,43 @@
 export class MultiplayerApi {
-  constructor() {
-    this.socket = null;
-  }
+  constructor(url) {
+    this.ws = new WebSocket(url);
+    this.handlers = [];
 
-  connect() {
-    this.socket = new WebSocket("ws://localhost:8080");
-
-    this.socket.onopen = () => {
-      console.log("Connected to server");
-    };
-
-    this.socket.onmessage = (event) => {
-      const message = JSON.parse(event.data);
-      console.log("From server:", message);
-    };
-
-    this.socket.onclose = () => {
-      console.log("Disconnected from server");
+    this.ws.onmessage = (e) => {
+      const msg = JSON.parse(e.data);
+      this.handlers.forEach((fn) =>
+        fn(msg.type, msg.from, msg.clientId, msg.data || msg)
+      );
     };
   }
 
-  send(data) {
-    if (!this.socket || this.socket.readyState !== WebSocket.OPEN) return;
-    this.socket.send(JSON.stringify(data));
+  listen(fn) {
+    this.handlers.push(fn);
+  }
+
+  host() {
+    this.ws.send(JSON.stringify({ type: "host" }));
+    return this._once("hosted");
+  }
+
+  join(session) {
+    this.ws.send(JSON.stringify({ type: "join", session }));
+    return this._once("joined");
+  }
+
+  game(data) {
+    this.ws.send(JSON.stringify({ type: "game", data }));
+  }
+
+  _once(type) {
+    return new Promise((resolve) => {
+      const fn = (t, _f, _c, data) => {
+        if (t === type) {
+          this.handlers = this.handlers.filter((h) => h !== fn);
+          resolve(data);
+        }
+      };
+      this.handlers.push(fn);
+    });
   }
 }
