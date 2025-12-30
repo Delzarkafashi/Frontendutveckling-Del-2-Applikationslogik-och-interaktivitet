@@ -88,3 +88,32 @@ button:active {
   margin: 0;
   font-weight: 700;
 }
+/* Online multiplayer: lobby layout */
+.online-lobby-modal {
+  display: grid;
+  gap: 12px;
+}
+
+/* Room-box: samma som inline padding/border + gömd från start */
+.online-room-box {
+  display: none;
+  padding: 8px;
+  border: 1px solid #ccc;
+}
+
+/* Start/restart ska vara gömda från start*/
+#startBtn,
+#restartBtn {
+  display: none;
+}
+
+/* Role info */
+.online-role-info {
+  margin-top: 8px;
+  opacity: 0.8;
+}
+
+/* Gameover overlay gömd från start */
+.online-gameover-hidden {
+  display: none;
+}
