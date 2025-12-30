@@ -3,6 +3,7 @@ export class StartScreen {
     this.screen = document.getElementById("start-screen");
     this.singleBtn = document.getElementById("start-btn");
     this.multiBtn = document.getElementById("multi-btn");
+    this.onlineBtn = document.getElementById("online-btn");
 
     this.onStart = onStart;
     this.singleBtn?.addEventListener("click", () => {
@@ -12,6 +13,9 @@ export class StartScreen {
     this.multiBtn?.addEventListener("click", () => {
       this.screen.style.display = "none";
       this.onStart(2);
+    });
+    this.onlineBtn?.addEventListener("click", () => {
+      window.location.href = "src/online-multiplayer/index.html";
     });
   }
 }

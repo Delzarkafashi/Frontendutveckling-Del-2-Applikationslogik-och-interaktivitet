@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Snake – Online Multiplayer</title>
+</head>
+<body>
+  <h1>Snake – Online Multiplayer</h1>
+
+  <p id="status">Status: Offline</p>
+
+  <div id="lobby" style="display:grid; gap:12px; max-width:360px;">
+    <button id="hostBtn">Hosta spel</button>
+
+    <div style="display:grid; gap:8px;">
+      <input id="roomInput" type="text" placeholder="Room code (t.ex. ABC123)" />
+      <button id="joinBtn">Gå med</button>
+    </div>
+
+    <div id="roomBox" style="display:none; padding:10px; border:1px solid #ccc;">
+      <p><strong>Room code:</strong> <span id="roomCode"></span></p>
+      <p><strong>Roll:</strong> <span id="role"></span></p>
+      <button id="startBtn" style="display:none;">Starta match (host)</button>
+    </div>
+
+    <button id="backBtn">⬅ Tillbaka</button>
+  </div>
+
+  <div id="gameUI" style="display:none; margin-top:16px;">
+    <p><strong>Online match igång!</strong> Piltangenter styr din orm.</p>
+    <p>Du: <span id="meLabel">?</span> | Andra: <span id="otherLabel">?</span></p>
+
+    <div style="display:flex; gap:10px; align-items:center; margin:10px 0;">
+      <button id="restartBtn" style="display:none;">Starta om (host)</button>
+      <span id="resultText"></span>
+    </div>
+
+    <canvas id="gameCanvas" width="1000" height="400" style="border:1px solid #333;"></canvas>
+  </div>
+
+  <script type="module" src="./online.js"></script>
+</body>
+</html>
