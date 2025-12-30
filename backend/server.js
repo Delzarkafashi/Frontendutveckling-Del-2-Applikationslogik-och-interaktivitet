@@ -3,8 +3,9 @@ import { WebSocketServer } from "ws";
 const wss = new WebSocketServer({ port: 8080 });
 
 const sessions = new Map(); // sessionId -> Set(ws)
+const hosts = new Map();    // sessionId -> hostId
 
-const uid = () => Math.random().toString(36).slice(2, 8);
+const uid = () => Math.random().toString(36).slice(2, 8).toUpperCase();
 
 wss.on("connection", (ws) => {
   ws.id = uid();
@@ -17,31 +18,79 @@ wss.on("connection", (ws) => {
     if (msg.type === "host") {
       const sessionId = uid();
       sessions.set(sessionId, new Set([ws]));
+      hosts.set(sessionId, ws.id);
       ws.session = sessionId;
 
       ws.send(JSON.stringify({
         type: "hosted",
         session: sessionId,
-        clientId: ws.id
+        clientId: ws.id,
       }));
     }
 
     // JOIN
     if (msg.type === "join") {
-      const set = sessions.get(msg.session);
-      if (!set) return;
+      const sessionId = String(msg.session).toUpperCase();
+      const set = sessions.get(sessionId);
+
+      if (!set) {
+        ws.send(JSON.stringify({ type: "error", message: "Room finns inte" }));
+        return;
+      }
 
       set.add(ws);
-      ws.session = msg.session;
+      ws.session = sessionId;
 
       ws.send(JSON.stringify({
         type: "joined",
-        session: msg.session,
-        clientId: ws.id
+        session: sessionId,
+        clientId: ws.id,
       }));
+
+      for (const client of set) {
+        client.send(JSON.stringify({
+          type: "player_joined",
+          session: sessionId,
+          players: set.size,
+        }));
+      }
     }
 
-    // GAME DATA
+    // START (bara host får starta)
+    if (msg.type === "start" && ws.session) {
+      const sessionId = ws.session;
+      const set = sessions.get(sessionId);
+      if (!set) return;
+
+      const hostId = hosts.get(sessionId);
+      if (ws.id !== hostId) {
+        ws.send(JSON.stringify({ type: "error", message: "Bara host kan starta" }));
+        return;
+      }
+
+      for (const client of set) {
+        client.send(JSON.stringify({ type: "started", session: sessionId }));
+      }
+    }
+
+    // RESTART (bara host får starta om)
+    if (msg.type === "restart" && ws.session) {
+      const sessionId = ws.session;
+      const set = sessions.get(sessionId);
+      if (!set) return;
+
+      const hostId = hosts.get(sessionId);
+      if (ws.id !== hostId) {
+        ws.send(JSON.stringify({ type: "error", message: "Bara host kan starta om" }));
+        return;
+      }
+
+      for (const client of set) {
+        client.send(JSON.stringify({ type: "restarted", session: sessionId }));
+      }
+    }
+
+    // GAME RELAY
     if (msg.type === "game" && ws.session) {
       const set = sessions.get(ws.session);
       if (!set) return;
@@ -51,7 +100,7 @@ wss.on("connection", (ws) => {
           client.send(JSON.stringify({
             type: "game",
             from: ws.id,
-            data: msg.data
+            data: msg.data,
           }));
         }
       }
@@ -60,11 +109,15 @@ wss.on("connection", (ws) => {
 
   ws.on("close", () => {
     if (!ws.session) return;
-    const set = sessions.get(ws.session);
+    const sessionId = ws.session;
+    const set = sessions.get(sessionId);
     if (!set) return;
 
     set.delete(ws);
-    if (set.size === 0) sessions.delete(ws.session);
+    if (set.size === 0) {
+      sessions.delete(sessionId);
+      hosts.delete(sessionId);
+    }
   });
 });
 

@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Snake – Online Multiplayer</title>
+    <link rel="stylesheet" href="../../styles/styles.css" />
+  </head>
+
+  <body>
+    <div class="game-wrapper">
+      <h1>Snake</h1>
+
+      <!-- HUD (enkel online-variant) -->
+      <section id="hud" class="hud">
+        <div class="hud-player" id="hud-p1">
+          <p class="hud-label">P1</p>
+          <p class="hud-score">Score: <span id="p1-score">0</span></p>
+        </div>
+
+        <div class="hud-status">
+          <p id="status">Status: Offline</p>
+          <p id="resultText" class="hud-result"></p>
+        </div>
+
+        <div class="hud-player" id="hud-p2">
+          <p class="hud-label">P2</p>
+          <p class="hud-score">Score: <span id="p2-score">0</span></p>
+        </div>
+      </section>
+
+      <!-- Canvas -->
+      <canvas id="gameCanvas" width="1000" height="400"></canvas>
+
+      <!-- ONLINE LOBBY overlay -->
+      <div id="lobby" class="overlay">
+        <div class="modal online-lobby-modal">
+          <button id="hostBtn" type="button">Hosta spel</button>
+
+          <input
+            id="roomInput"
+            type="text"
+            placeholder="Room code (t.ex. ABC123)"
+            autocomplete="off"
+          />
+          <button id="joinBtn" type="button">Gå med</button>
+
+          <!-- OBS: roomBox ska vara display:none från start, precis som innan -->
+          <div id="roomBox" class="online-room-box">
+            <p><strong>Room code:</strong> <span id="roomCode"></span></p>
+            <p><strong>Roll:</strong> <span id="role"></span></p>
+
+            <!-- OBS: startBtn ska fortfarande vara display:none från start -->
+            <button id="startBtn" type="button">Starta match (host)</button>
+          </div>
+
+          <!-- OBS: restartBtn ska fortfarande vara display:none från start -->
+          <button id="restartBtn" type="button">Starta om (host)</button>
+
+          <button id="backBtn" type="button">⬅ Tillbaka</button>
+
+          <div class="online-role-info">
+            <p id="role-info">Du: ? | Andra: ?</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Game Over overlay: ska vara display:none från start -->
+    <div id="gameover-screen" class="overlay online-gameover-hidden">
+      <div class="modal">
+        <h2>Game Over</h2>
+        <p id="gameover-result">Game Over!</p>
+        <input id="player-name" type="text" placeholder="Ditt namn" />
+        <button id="restart-btn" type="button">Starta om</button>
+        <button id="gameover-back-btn" type="button">← Tillbaka</button>
+      </div>
+    </div>
+
+    <script type="module" src="./online.js"></script>
+  </body>
+</html>
